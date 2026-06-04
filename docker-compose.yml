@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  flinvent-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+    networks:
+      - infra
+
+networks:
+  infra:
+    external: true
