@@ -9,6 +9,7 @@ const NeuralCanvas = lazy(() => import('@/components/three/NeuralCanvas'));
 export default function Hero() {
   const [showCanvas, setShowCanvas] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [isFullScreen, setIsFullScreen] = useState(true);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -18,14 +19,23 @@ export default function Hero() {
     }
     const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    
+    // Transition to embedded layout right when the spin starts
+    const timer = setTimeout(() => {
+      setIsFullScreen(false);
+    }, 3400);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
     <section className="min-h-screen flex items-center relative overflow-hidden pt-16">
       <div className="max-w-7xl mx-auto px-6 md:px-12 w-full grid grid-cols-1 md:grid-cols-[55%_45%] gap-12 md:gap-8 items-center py-20 md:py-0">
         {/* Left — text */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 relative z-10 pointer-events-auto">
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -103,11 +113,17 @@ export default function Hero() {
         </div>
 
         {/* Right — canvas */}
-        <div className="hidden md:block w-full h-[600px] relative">
+        <div className="hidden md:block w-full h-[600px] relative z-0">
           {showCanvas ? (
-            <Suspense fallback={<HeroGradientFallback />}>
-              <NeuralCanvas />
-            </Suspense>
+            <motion.div
+              layout
+              className={isFullScreen ? "fixed inset-0 pointer-events-none opacity-80" : "absolute inset-0 pointer-events-none opacity-100"}
+              transition={{ duration: 1.5, ease: [0.65, 0, 0.35, 1] }}
+            >
+              <Suspense fallback={<HeroGradientFallback />}>
+                <NeuralCanvas />
+              </Suspense>
+            </motion.div>
           ) : (
             <HeroGradientFallback />
           )}
